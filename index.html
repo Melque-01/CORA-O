@@ -16,10 +16,26 @@
     display: block;
     background: #000000;
   }
+  #playBtn {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ffbc61;
+    color: #000;
+    border: none;
+    border-radius: 30px;
+    padding: 15px 30px;
+    font: bold 16px Arial;
+    cursor: pointer;
+    z-index: 10;
+  }
 </style>
 </head>
 <body>
 <canvas id="heart"></canvas>
+<audio id="musica" src="musica.mp3" loop preload="auto" autoplay></audio>
+<button id="playBtn">❤ Toque para começar</button>
 <script>
   const canvas = document.getElementById('heart');
   const ctx = canvas.getContext('2d');
@@ -37,6 +53,7 @@
   ctx.textBaseline = 'middle';
 
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const DELAY = 50; // <-- velocidade: aumente p/ mais lento (ex: 80), diminua p/ mais rápido (ex: 10)
 
   function heartPoint(angle) {
     const s = Math.sin(angle);
@@ -74,7 +91,7 @@
           const sx = cx + p.x * k;
           const sy = cy - p.y * k; // inverte Y (canvas cresce p/ baixo)
           ctx.fillText('I love you', sx, sy);
-          await sleep(20); // delay curto = efeito turtle
+          await sleep(DELAY); // delay curto = efeito turtle
         }
       }
       await sleep(2500); // pausa no final e recomeça o laço
@@ -82,6 +99,16 @@
   }
 
   drawHeart();
+
+  // Música: tenta autoplay; se o navegador bloquear, o botão assume
+  const musica = document.getElementById('musica');
+  const playBtn = document.getElementById('playBtn');
+  function tocar() {
+    musica.play().then(() => playBtn.style.display = 'none').catch(() => {});
+  }
+  playBtn.addEventListener('click', tocar);
+  document.body.addEventListener('touchstart', tocar, { once: true });
+  window.addEventListener('load', () => tocar());
 </script>
 </body>
 </html>
