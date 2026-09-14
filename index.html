@@ -116,12 +116,18 @@
   musica.volume = 1;
   musica.muted = false;
   let started = false;
+  function startMusic() {
+    try {
+      const p = musica.play();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    } catch (e) { /* ignora: o coração desenha mesmo sem áudio */ }
+  }
   function abrir() {
-    if (started) return;
+    if (started) { startMusic(); return; }
     started = true;
     playBtn.style.display = 'none';
-    musica.play().catch(() => {});
-    drawHeart();
+    drawHeart(); // coração primeiro: nunca trava por causa do áudio
+    startMusic();
   }
   playBtn.addEventListener('click', abrir);
   // Qualquer toque na tela também abre (vale p/ celular)
