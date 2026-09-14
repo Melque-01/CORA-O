@@ -34,23 +34,33 @@
 </head>
 <body>
 <canvas id="heart"></canvas>
-<audio id="musica" src="musica.mp3" loop preload="auto" autoplay></audio>
+<audio id="musica" src="musica.mp3" loop preload="auto" autoplay playsinline></audio>
 <button id="playBtn">❤ Toque para começar</button>
 <script>
   const canvas = document.getElementById('heart');
   const ctx = canvas.getContext('2d');
 
+  // Nitidez no celular: acompanha devicePixelRatio (telas HD/Retina)
+  let W = 0, H = 0;
+  function setupCtx() {
+    ctx.fillStyle = '#ffbc61';
+    ctx.font = 'bold 9px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+  }
   function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 3);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    setupCtx();
   }
   window.addEventListener('resize', resize);
   resize();
-
-  ctx.fillStyle = '#ffbc61';
-  ctx.font = 'bold 9px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
 
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   const DELAY = 50; // <-- velocidade: aumente p/ mais lento (ex: 80), diminua p/ mais rápido (ex: 10)
@@ -67,23 +77,20 @@
 
   async function drawHeart() {
     while (true) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#ffbc61';
-      ctx.font = 'bold 9px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      ctx.clearRect(0, 0, W, H);
+      setupCtx();
 
       // Escala (scale) de 11 até 16, igual ao laço do turtle
       for (let scale = 11; scale <= 16; scale++) {
         // Fator responsivo: cabe em qualquer tela (celular incluso)
         // Coração tem ~32 de largura e ~30 de altura na matemática pura.
         // baseFit faz caber na menor dimensão; (scale/16) faz a animação crescer.
-        const baseFit = Math.min(canvas.width, canvas.height) / 34;
+        const baseFit = Math.min(W, H) / 34;
         const k = baseFit * (scale / 16);
 
-        const cx = canvas.width / 2;
+        const cx = W / 2;
         // Corrige centro vertical (coração vai de y=-17 até y~12, meio em -2.5)
-        const cy = canvas.height / 2 - 2.5 * k;
+        const cy = H / 2 - 2.5 * k;
 
         for (let i = 0; i < 120; i++) {
           const angle = i * (2 * Math.PI) / 120;
@@ -100,14 +107,21 @@
 
   drawHeart();
 
-  // Música: tenta autoplay; se o navegador bloquear, o botão assume
+  // Música: tenta autoplay; se o navegador bloquear, qualquer toque inicia
   const musica = document.getElementById('musica');
   const playBtn = document.getElementById('playBtn');
+  musica.volume = 1;
+  musica.muted = false;
   function tocar() {
-    musica.play().then(() => playBtn.style.display = 'none').catch(() => {});
+    musica.play().then(() => playBtn.style.display = 'none').catch(() => {
+      playBtn.style.display = 'block'; // bloqueado: mantém botão
+    });
   }
   playBtn.addEventListener('click', tocar);
-  document.body.addEventListener('touchstart', tocar, { once: true });
+  // Qualquer toque/clique na tela libera o áudio (regra do celular)
+  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(ev =>
+    document.addEventListener(ev, tocar, { once: true })
+  );
   window.addEventListener('load', () => tocar());
 </script>
 </body>
