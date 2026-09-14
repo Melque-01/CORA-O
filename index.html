@@ -25,17 +25,22 @@
     color: #000;
     border: none;
     border-radius: 30px;
-    padding: 15px 30px;
-    font: bold 16px Arial;
+    padding: 18px 34px;
+    font: bold 17px Arial;
     cursor: pointer;
     z-index: 10;
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.07); }
   }
 </style>
 </head>
 <body>
 <canvas id="heart"></canvas>
-<audio id="musica" src="musica.mp3" loop preload="auto" autoplay playsinline></audio>
-<button id="playBtn">❤ Toque para começar</button>
+<audio id="musica" src="musica.mp3" loop preload="auto" playsinline></audio>
+<button id="playBtn">❤ Toque para abrir sua surpresa</button>
 <script>
   const canvas = document.getElementById('heart');
   const ctx = canvas.getContext('2d');
@@ -105,24 +110,24 @@
     }
   }
 
-  drawHeart();
-
-  // Música: tenta autoplay; se o navegador bloquear, qualquer toque inicia
+  // Modo surpresa: animação + música começam juntas no 1º toque
   const musica = document.getElementById('musica');
   const playBtn = document.getElementById('playBtn');
   musica.volume = 1;
   musica.muted = false;
-  function tocar() {
-    musica.play().then(() => playBtn.style.display = 'none').catch(() => {
-      playBtn.style.display = 'block'; // bloqueado: mantém botão
-    });
+  let started = false;
+  function abrir() {
+    if (started) return;
+    started = true;
+    playBtn.style.display = 'none';
+    musica.play().catch(() => {});
+    drawHeart();
   }
-  playBtn.addEventListener('click', tocar);
-  // Qualquer toque/clique na tela libera o áudio (regra do celular)
-  ['pointerdown', 'touchend', 'click', 'keydown'].forEach(ev =>
-    document.addEventListener(ev, tocar, { once: true })
+  playBtn.addEventListener('click', abrir);
+  // Qualquer toque na tela também abre (vale p/ celular)
+  ['pointerdown', 'touchend', 'keydown'].forEach(ev =>
+    document.addEventListener(ev, abrir, { once: true })
   );
-  window.addEventListener('load', () => tocar());
 </script>
 </body>
 </html>
