@@ -134,6 +134,31 @@
   ['pointerdown', 'touchend', 'keydown'].forEach(ev =>
     document.addEventListener(ev, abrir, { once: true })
   );
+
+  // Ao fechar/trocar de aba: para a música e limpa o que o site guardou
+  function pararMusica() {
+    try { musica.pause(); musica.currentTime = 0; } catch (e) {}
+  }
+  function limparCookies() {
+    try {
+      document.cookie.split(';').forEach(c => {
+        const nome = c.split('=')[0].trim();
+        if (!nome) return;
+        // expira o cookie no path atual e na raiz
+        document.cookie = nome + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+        document.cookie = nome + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=' + location.pathname;
+      });
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (e) {}
+  }
+  // Aba oculta (trocar de app/aba) já pausa na hora
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { pararMusica(); limparCookies(); }
+  });
+  // Fechando o navegador/aba: última chance de limpar
+  window.addEventListener('pagehide', () => { pararMusica(); limparCookies(); });
+  window.addEventListener('beforeunload', () => { pararMusica(); limparCookies(); });
 </script>
 </body>
 </html>
