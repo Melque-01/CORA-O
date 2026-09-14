@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>I Love You - Coração</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    background: #000000;
+  }
+</style>
+</head>
+<body>
+<canvas id="heart"></canvas>
+<script>
+  const canvas = document.getElementById('heart');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  ctx.fillStyle = '#ffbc61';
+  ctx.font = 'bold 9px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+  function heartPoint(angle) {
+    const s = Math.sin(angle);
+    const x = 16 * s * s * s;
+    const y = 13 * Math.cos(angle)
+            - 5 * Math.cos(2 * angle)
+            - 2 * Math.cos(3 * angle)
+            - Math.cos(4 * angle);
+    return { x, y };
+  }
+
+  async function drawHeart() {
+    while (true) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#ffbc61';
+      ctx.font = 'bold 9px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // Escala (scale) de 11 até 16, igual ao laço do turtle
+      for (let scale = 11; scale <= 16; scale++) {
+        // Fator responsivo: cabe em qualquer tela (celular incluso)
+        // Coração tem ~32 de largura e ~30 de altura na matemática pura.
+        // baseFit faz caber na menor dimensão; (scale/16) faz a animação crescer.
+        const baseFit = Math.min(canvas.width, canvas.height) / 34;
+        const k = baseFit * (scale / 16);
+
+        const cx = canvas.width / 2;
+        // Corrige centro vertical (coração vai de y=-17 até y~12, meio em -2.5)
+        const cy = canvas.height / 2 - 2.5 * k;
+
+        for (let i = 0; i < 120; i++) {
+          const angle = i * (2 * Math.PI) / 120;
+          const p = heartPoint(angle);
+          const sx = cx + p.x * k;
+          const sy = cy - p.y * k; // inverte Y (canvas cresce p/ baixo)
+          ctx.fillText('I love you', sx, sy);
+          await sleep(20); // delay curto = efeito turtle
+        }
+      }
+      await sleep(2500); // pausa no final e recomeça o laço
+    }
+  }
+
+  drawHeart();
+</script>
+</body>
+</html>
